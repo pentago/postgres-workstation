@@ -7,14 +7,14 @@ Credentials are loaded automatically by `direnv` from `pass`:
 - `$PG_PASSWORD` — database password
 - `$PUID` / `$PGID` — host user mapping
 
-The postgres container service name is `postgres`, database is `agent-memory`.
+The postgres container service name is `pgvector`, database is `agent-memory`.
 
 ## Dump
 
 ### Plain SQL (portable, recommended)
 
 ```bash
-docker exec -e PGPASSWORD=$PG_PASSWORD postgres \
+docker exec -e PGPASSWORD=$PG_PASSWORD pgvector \
   pg_dump -U $PG_USER -d agent-memory --no-owner -Fp \
   > agent-memory-$(date +%Y-%m-%d).sql
 ```
@@ -30,7 +30,7 @@ sed -i '/^\\restrict/d; /^\\unrestrict/d' agent-memory-$(date +%Y-%m-%d).sql
 Adminer chokes on `COPY FROM stdin`. Use `--column-inserts` for row-by-row INSERTs:
 
 ```bash
-docker exec -e PGPASSWORD=$PG_PASSWORD postgres \
+docker exec -e PGPASSWORD=$PG_PASSWORD pgvector \
   pg_dump -U $PG_USER -d agent-memory --no-owner --column-inserts \
   > agent-memory-$(date +%Y-%m-%d)-inserts.sql
 ```
@@ -40,7 +40,7 @@ Larger file, slower restore, but can be pasted into Adminer.
 ### Custom format (for pg_restore)
 
 ```bash
-docker exec -e PGPASSWORD=$PG_PASSWORD postgres \
+docker exec -e PGPASSWORD=$PG_PASSWORD pgvector \
   pg_dump -U $PG_USER -d agent-memory --no-owner -Fc \
   > agent-memory-$(date +%Y-%m-%d).dump
 ```
@@ -50,7 +50,7 @@ docker exec -e PGPASSWORD=$PG_PASSWORD postgres \
 ### Create the database first
 
 ```bash
-docker exec -e PGPASSWORD=$PG_PASSWORD postgres \
+docker exec -e PGPASSWORD=$PG_PASSWORD pgvector \
   psql -U $PG_USER -d postgres -c "CREATE DATABASE \"agent-memory\";"
 ```
 
@@ -60,7 +60,7 @@ Quote the hyphen so psql doesn't interpret it as a flag.
 
 ```bash
 # pipe directly — no intermediate file copy needed (container is read-only)
-docker exec -i -e PGPASSWORD=$PG_PASSWORD postgres \
+docker exec -i -e PGPASSWORD=$PG_PASSWORD pgvector \
   psql -U $PG_USER -d agent-memory < agent-memory-2026-07-28.sql
 ```
 
@@ -69,7 +69,7 @@ docker exec -i -e PGPASSWORD=$PG_PASSWORD postgres \
 ```bash
 # via a helper container on the same network
 docker run --rm \
-  --network postgres-mmemory_db \
+  --network postgres-memory_db \
   -v $(pwd)/agent-memory-2026-07-28.dump:/tmp/dump.dump:ro \
   -e PGPASSWORD=$PG_PASSWORD \
   --entrypoint pg_restore \

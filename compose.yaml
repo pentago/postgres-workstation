@@ -1,7 +1,7 @@
 services:
-  postgres:
-    container_name: postgres
-    hostname: postgres
+  pgvector:
+    container_name: pgvector
+    hostname: pgvector
     image: pgvector/pgvector:0.8.6-pg18-trixie
     user: ${PUID}:${PGID}
     restart: unless-stopped
@@ -23,8 +23,6 @@ services:
       - ./init:/docker-entrypoint-initdb.d:ro
     ports:
       - "127.0.0.1:5432:5432"
-    networks:
-      - db
     deploy:
       resources:
         limits:
@@ -80,7 +78,3 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-
-networks:
-  db:
-    driver: bridge
